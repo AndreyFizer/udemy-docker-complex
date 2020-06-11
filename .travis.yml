@@ -8,10 +8,10 @@ services:
   - docker
 
 before_install:
-  - docker build -t lekvar21/client-test -f /client/Dockerfile.dev ./client
+  - docker build -t lekvar21/multi-test -f ./client/Dockerfile.dev ./client/.
 
 script:
-  - docker run -e CI=true lekvar21/client-test yarn run test
+  - docker run -e CI=true lekvar21/multi-test yarn run test
 
 after_success:
   - docker build -t lekvar21/multi-client ./client
