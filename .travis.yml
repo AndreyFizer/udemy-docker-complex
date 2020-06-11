@@ -1,0 +1,37 @@
+sudo: required
+
+language: node_js
+node_js:
+  - "10"
+
+services:
+  - docker
+
+before_install:
+  - docker build -t lekvar21/client-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run -e CI=true lekvar21/client-test yarn run test
+
+after_success:
+  - docker build -t lekvar21/multi-client ./client
+  - docker build -t lekvar21/multi-nginx ./nginx
+  - docker build -t lekvar21/multi-server ./server
+  - docker build -t lekvar21/multi-worker ./worker
+  - echo "$DOCKER_PASS" | docker login -u "$DOCKER_ID" --password-stdin
+  - docker push lekvar21/multi-client
+  - docker push lekvar21/multi-nginx
+  - docker push lekvar21/multi-server
+  - docker push lekvar21/multi-worker
+
+deploy:
+  provider: elasticbeanstalk
+  region: "us-east-1"
+  app: "udemy-docker-react"
+  env: "UdemyDockerReact-env"
+  bucket_name: "elasticbeanstalk-us-east-1-853210130410"
+  bucket_path: "udemy-docker-react"
+  access_key_id: $AWS_ACCESS_KEY
+  secret_access_key: $AWS_SECRET_KEY
+  on:
+    branch: master
